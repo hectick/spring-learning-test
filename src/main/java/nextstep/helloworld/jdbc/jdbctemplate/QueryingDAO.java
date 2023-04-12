@@ -9,12 +9,6 @@ import java.util.List;
 
 @Repository
 public class QueryingDAO {
-    private JdbcTemplate jdbcTemplate;
-
-    public QueryingDAO(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
-    }
-
     private final RowMapper<Customer> actorRowMapper = (resultSet, rowNum) -> {
         Customer customer = new Customer(
                 resultSet.getLong("id"),
@@ -23,6 +17,11 @@ public class QueryingDAO {
         );
         return customer;
     };
+    private final JdbcTemplate jdbcTemplate;
+
+    public QueryingDAO(JdbcTemplate jdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
+    }
 
     /**
      * public <T> T queryForObject(String sql, Class<T> requiredType)
@@ -46,7 +45,7 @@ public class QueryingDAO {
     public Customer findCustomerById(Long id) {
         String sql = "select id, first_name, last_name from customers where id = ?";
         Customer customer = jdbcTemplate.queryForObject(
-                sql,(resultSet, rowNum) -> {
+                sql, (resultSet, rowNum) -> {
                     String firstName = resultSet.getString("first_name");
                     String lastName = resultSet.getString("last_name");
                     return new Customer(firstName, lastName);
@@ -75,12 +74,6 @@ public class QueryingDAO {
      */
     public List<Customer> findCustomerByFirstName(String firstName) {
         String sql = "select id, first_name, last_name from customers where first_name = ?";
-        List<Customer> customers = jdbcTemplate.query(
-                sql, (resultSet, rowNum) -> {
-                    String firstName2 = resultSet.getString("first_name");
-                    String lastName = resultSet.getString("last_name");
-                    return new Customer(firstName2, lastName);
-                }, firstName);
-        return customers;
+        return jdbcTemplate.query(sql, actorRowMapper, firstName);
     }
 }
